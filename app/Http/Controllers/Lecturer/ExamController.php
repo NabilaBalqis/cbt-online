@@ -30,11 +30,7 @@ class ExamController extends Controller
             $query->where('lecturers_id', $user->id); // Filter lessons by lecturer ID
         })->with('lesson', 'classroom', 'questions')->latest()->paginate(5);
         
-        // //get exams
-        // $exams = Exam::when(request()->q, function ($exams) {
-        //     $exams = $exams->where('title', 'like', '%' . request()->q . '%');
-        // })->with('lesson', 'classroom', 'questions')->latest()->paginate(5);
-
+        
         //append query string to pagination links
         $exams->appends(['q' => request()->q]);
 
