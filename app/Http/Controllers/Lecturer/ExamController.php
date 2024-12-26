@@ -21,7 +21,7 @@ class ExamController extends Controller
     public function index(Request $request)
     {
         // Mendapatkan dosen yang sedang login
-        $lecturers = auth()->guard('lecturer')->user();
+        $lecturers = auth()->guard('lecturers')->user();
 
         // Validasi apakah dosen valid
         if (!$lecturers) {
