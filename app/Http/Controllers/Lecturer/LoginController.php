@@ -34,7 +34,7 @@ class LoginController extends Controller
         
         //login the user
         auth()->guard('lecturer')->login($lecturer);
-
+        
         //redirect to dashboard
         return redirect()->route('lecturer.dashboard');
     }

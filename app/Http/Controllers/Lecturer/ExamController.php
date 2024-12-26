@@ -18,17 +18,53 @@ class ExamController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Filter exams based on lecturer's lessons
-        $user = auth()->user(); // Get the currently authenticated user
+        // Mendapatkan dosen yang sedang login
+        $lecturers = auth()->guard('lecturer')->user();
 
-        //get exams
-        $exams = Exam::when(request()->q, function ($exams) {
-            $exams = $exams->where('title', 'like', '%' . request()->q . '%');
-        })->whereHas('lesson', function ($query) use ($user) {
-            $query->where('lecturers_id', $user->id); // Filter lessons by lecturer ID
-        })->with('lesson', 'classroom', 'questions')->latest()->paginate(5);
+        // Validasi apakah dosen valid
+        if (!$lecturers) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Filter ujian berdasarkan mata kuliah yang diajarkan oleh dosen
+        $exams = Exam::when($request->q, function ($query) use ($request) {
+            $query->where('title', 'like', '%' . $request->q . '%');
+        })
+        ->whereHas('lesson', function ($query) use ($lecturers) {
+            $query->where('lecturers_id', $lecturers->id);
+        })
+        ->with(['lesson', 'classroom', 'questions'])
+        ->latest()
+        ->paginate(5);
+
+        return response()->json($exams);
+        
+        // // Filter exams based on lecturer's lessons
+        // $user = auth()->user(); // Get the currently authenticated user
+
+        // //get exams
+        // $exams = Exam::query()
+        //     ->when($request->q, function ($query) use ($request) {
+        //         $query->where('title', 'like', '%' . $request->q . '%');
+        //     })
+        //     ->whereHas('lessons', function (Builder $query) use ($lecturers) {
+        //         $query->where('lecturers_id', $lecturers->id); // Filter berdasarkan pengajar
+        //     // ->whereHas('lessons', function (Builder $query) use ($user) {
+        //     //     $query->where('lecturer_id', $user->lecturer->id); // Filter berdasarkan pengajar
+        //     })
+        //     ->with(['course', 'questions']) // Load relasi terkait
+        //     ->latest()
+        //     ->paginate(5);
+
+        // return response()->json($exams);
+        
+        // $exams = Exam::when(request()->q, function ($exams) {
+        //     $exams = $exams->where('title', 'like', '%' . request()->q . '%');
+        // })->whereHas('lesson', function ($query) use ($user) {
+        //     $query->where('lecturers_id', $user->id); // Filter lessons by lecturer ID
+        // })->with('lesson', 'classroom', 'questions')->latest()->paginate(5);
         
         // //get exams
         // $exams = Exam::when(request()->q, function ($exams) {
