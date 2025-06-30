@@ -32,8 +32,13 @@ class LoginController extends Controller
             return redirect()->back()->with('error', 'NIP atau Password salah');
         }
         
+        // //login the user
+        // auth()->guard('lecturer')->login($lecturer);
+        
         //login the user
+        session(['lecturer_id' => $lecturer->id]);
         auth()->guard('lecturer')->login($lecturer);
+        // auth()->guard('lecturer')->login($lecturer);
         
         //redirect to dashboard
         return redirect()->route('lecturer.dashboard');

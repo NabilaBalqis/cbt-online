@@ -20,26 +20,33 @@ class ExamController extends Controller
      */
     public function index(Request $request)
     {
-        // Mendapatkan dosen yang sedang login
-        $lecturers = auth()->guard('lecturers')->user();
+        // // Mendapatkan dosen yang sedang login
+        // $lecturers = auth()->guard('lecturers')->user();
 
-        // Validasi apakah dosen valid
-        if (!$lecturers) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+        // // Validasi apakah dosen valid
+        // if (!$lecturers) {
+        //     return response()->json(['error' => 'Unauthorized'], 403);
+        // }
 
-        // Filter ujian berdasarkan mata kuliah yang diajarkan oleh dosen
-        $exams = Exam::when($request->q, function ($query) use ($request) {
-            $query->where('title', 'like', '%' . $request->q . '%');
-        })
-        ->whereHas('lesson', function ($query) use ($lecturers) {
-            $query->where('lecturers_id', $lecturers->id);
-        })
-        ->with(['lesson', 'classroom', 'questions'])
-        ->latest()
-        ->paginate(5);
+        // $exams = Exam::join('lecturers', 'lecturers.id', '=', 'exams.lecturer_id')->join('lessons', 'lessons.id', '=', 'exams.lesson_id')->join('classrooms', 'classrooms.id', '=', 'exams.classroom_id')->where('lecturer_id', $lecturers->id)
+        //     ->select('exams.*', 'lecturers.name', 'lessons.title')->when(request()->q, function ($exams) {
+        //         $exams = $exams->where('lecturer_id', 'like', '%' . request()->q . '%');
+        //     })->latest('exams.*', 'lecturers.name', 'lessons.title')->paginate(5);
 
-        return response()->json($exams);
+        // $exams->appends(['q' => request()->q]);
+
+        // // Filter ujian berdasarkan mata kuliah yang diajarkan oleh dosen
+        // $exams = Exam::when($request->q, function ($query) use ($request) {
+        //     $query->where('title', 'like', '%' . $request->q . '%');
+        // })
+        // ->whereHas('lesson', function ($query) use ($lecturers) {
+        //     $query->where('lecturers_id', $lecturers->id);
+        // })
+        // ->with(['lesson', 'classroom', 'questions'])
+        // ->latest()
+        // ->paginate(5);
+
+        // return response()->json($exams);
         
         // // Filter exams based on lecturer's lessons
         // $user = auth()->user(); // Get the currently authenticated user
@@ -66,10 +73,10 @@ class ExamController extends Controller
         //     $query->where('lecturers_id', $user->id); // Filter lessons by lecturer ID
         // })->with('lesson', 'classroom', 'questions')->latest()->paginate(5);
         
-        // //get exams
-        // $exams = Exam::when(request()->q, function ($exams) {
-        //     $exams = $exams->where('title', 'like', '%' . request()->q . '%');
-        // })->with('lesson', 'classroom', 'questions')->latest()->paginate(5);
+        //get exams
+        $exams = Exam::when(request()->q, function ($exams) {
+            $exams = $exams->where('title', 'like', '%' . request()->q . '%');
+        })->with('lesson', 'classroom', 'questions')->latest()->paginate(5);
 
         //append query string to pagination links
         $exams->appends(['q' => request()->q]);
@@ -87,13 +94,20 @@ class ExamController extends Controller
      */
     public function create()
     {
-        $user = auth()->user();
+        // $lecturerId = session('lecturer_id');
 
-        //get lessons taught by the lecturer
-        $lessons = Lesson::where('lecturers_id', $user->id)->get();
+        // if (!$lecturerId) {
+        //     return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu');
+        // }
+        
+        // $user = auth()->user();
 
-        // //get lessons
-        // $lessons = Lesson::all();
+        // //get lessons taught by the lecturer
+        // $lecturerLesson = LecturerLesson::where('lecturer_id', $lecturerId)->get();
+        // $lessons = Lesson::where('lecturers_id', $user->id)->get();
+
+        //get lessons
+        $lessons = Lesson::all();
 
         //get all classrooms (optionally filter if classrooms are tied to lessons)
         $classrooms = Classroom::all();
@@ -101,6 +115,7 @@ class ExamController extends Controller
         //render with inertia
         return inertia('Lecturer/Exams/Create', [
             'lessons' => $lessons,
+            // 'lecturerLesson' => $lecturerLesson,
             'classrooms' => $classrooms,
         ]);
     }
@@ -113,7 +128,7 @@ class ExamController extends Controller
      */
     public function store(Request $request)
     {
-        $user = auth()->user();
+        // $user = auth()->user();
 
         //validate request
         $request->validate([
@@ -127,9 +142,9 @@ class ExamController extends Controller
             'show_answer' => 'required',
         ]);
 
-        // Verify that the lesson belongs to the lecturer
-        $lesson = Lesson::where('id', $request->lesson_id
-        )->where('lecturers_id', $user->id)->firstOrFail();
+        // // Verify that the lesson belongs to the lecturer
+        // $lesson = Lesson::where('id', $request->lesson_id
+        // )->where('lecturers_id', $user->id)->firstOrFail();
 
         //create exam
         Exam::create([

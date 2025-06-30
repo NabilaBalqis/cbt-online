@@ -51,7 +51,7 @@ class LecturerController extends Controller
         //validate request
         $request->validate([
             'name'          => 'required|string|max:255',
-            'nip'           => 'required|unique:lecturer',
+            'nip'           => 'required|unique:lecturers',
             'address'       => 'required|string|max:255',
             'gender'        => 'required|string',
             'password'      => 'required|confirmed',
@@ -107,7 +107,7 @@ class LecturerController extends Controller
     {
         //validate request
         $request->validate([
-            'nip'           => 'required|unique:lecturer,nip,'.$lecturer->id,
+            'nip'           => 'required|unique:lecturers,nip,'.$lecturer->id,
             'name'          => 'required|string|max:255',
             'address'       => 'required|string|max:255',
             'gender'        => 'required|string',
